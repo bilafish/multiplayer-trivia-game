@@ -21,7 +21,7 @@ const GameRoom = () => {
         alert(error);
       }
     });
-  }, [id]);
+  }, [id, name]);
 
   useEffect(() => {
     socket.on("roomData", ({ users }) => {
@@ -32,6 +32,7 @@ const GameRoom = () => {
     <Center bg="#151515" minH="100vh">
       <VStack spacing="1rem" color="white">
         <Heading color="#5582ac">Game Room</Heading>
+        <p>Game ID: {id}</p>
         <p>Users in room:</p>
         {users.length > 0 &&
           users.map((user) => <p key={user.id}>{user.name}</p>)}
