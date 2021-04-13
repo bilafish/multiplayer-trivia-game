@@ -15,7 +15,7 @@ const LeaderboardTable = ({ data }) => {
       </Thead>
       <Tbody>
         {sortedData.map((player, index) => (
-          <Tr>
+          <Tr key={player.id}>
             <Td>{index + 1}</Td>
             <Td>{player.name}</Td>
             <Td isNumeric>{player.score}</Td>
