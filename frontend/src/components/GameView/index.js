@@ -3,8 +3,8 @@ import Option from "../Question/Option";
 import QuestionTransition from "../Question/QuestionTransition";
 import { parseEntities } from "../Question/Option";
 import Timer from "../Question/Timer";
-
-const GameView = ({ selectedAnswer, selectOption, gameState }) => {
+import LeaderboardTable from "./LeaderboardTable";
+const GameView = ({ selectedAnswer, selectOption, gameState, leaderboard }) => {
   const questionRoundStatus = gameState.questionRoundStatus;
   return (
     <>
@@ -41,7 +41,12 @@ const GameView = ({ selectedAnswer, selectOption, gameState }) => {
           </HStack>
         </>
       )}
-      {questionRoundStatus === "ended" && <div>Results</div>}
+      {questionRoundStatus === "ended" && (
+        <div>
+          <Heading>Leaderboard</Heading>
+          <LeaderboardTable data={leaderboard} />
+        </div>
+      )}
     </>
   );
 };

@@ -17,6 +17,7 @@ const GameRoom = () => {
   const [isReady, setIsReady] = useState(false);
   const [gameStatus, setGameStatus] = useState("pending");
   const [gameState, setGameState] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
 
   useEffect(() => {
@@ -45,6 +46,7 @@ const GameRoom = () => {
     });
     socket.on("updateLeaderboard", ({ leaderboard }) => {
       console.log({ leaderboard });
+      setLeaderboard(leaderboard);
     });
   }, []);
 
@@ -107,6 +109,7 @@ const GameRoom = () => {
             selectedAnswer={selectedAnswer}
             selectOption={selectOption}
             gameState={gameState}
+            leaderboard={leaderboard}
           />
         )}
         {gameStatus === "ended" && (
