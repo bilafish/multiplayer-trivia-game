@@ -30,6 +30,22 @@ const createGame = (id) => {
           },
         ],
       },
+      {
+        id: "d1cc29ef-0513-4a18-9292-4d7f352e82bd",
+        payload:
+          "In the TV series Red Dwarf, Kryten&#039;s full name is Kryten 2X4B-523P.",
+        answerID: 1,
+        options: [
+          {
+            id: 1,
+            payload: "True",
+          },
+          {
+            id: 2,
+            payload: "False",
+          },
+        ],
+      },
     ],
   };
 };
@@ -74,11 +90,11 @@ const gameLoop = async (
   let currentQuestion = games[room].currentQuestionNo;
   const questions = games[room].questions;
   updateGameStatus(room, "started");
-  updateQuestionRoundStatus(room, "pending");
-  games[room].duration = roundStartTransitionDuration;
-  updateGameStateEmitter(games[room], room);
 
   while (currentQuestion <= games[room].questions.length) {
+    updateQuestionRoundStatus(room, "pending");
+    games[room].duration = roundStartTransitionDuration;
+    updateGameStateEmitter(games[room], room);
     await new Promise((resolve) =>
       setTimeout(resolve, roundStartTransitionDuration)
     );
@@ -109,17 +125,19 @@ const gameLoop = async (
     // TODO: Socket Emit event to update game state, sending game status, correct answer & updated leaderboard
     games[room].duration = roundEndTransitionDuration;
     updateGameStateEmitter(games[room], room);
-
     await new Promise((resolve) =>
       setTimeout(resolve, roundEndTransitionDuration)
     );
-    if (currentQuestion < games[room].questions.length) {
-      updateQuestionRoundStatus(room, "pending");
-      // TODO: Socket Emit event to update game state
-      updateGameStateEmitter(games[room], room);
-    }
+
+    // if (currentQuestion < games[room].questions.length) {
+    //   updateQuestionRoundStatus(room, "pending");
+    //   // TODO: Socket Emit event to update game state
+    //   updateGameStateEmitter(games[room], room);
+    // }
     currentQuestion += 1;
+    games[room].currentQuestionNo = currentQuestion;
   }
+
   updateGameStatus(room, "ended");
   // TODO: Socket Emit event to update game state
   updateGameStateEmitter(games[room], room);
