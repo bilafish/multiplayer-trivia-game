@@ -1,4 +1,5 @@
 const games = {};
+const moment = require("moment");
 
 const createGame = (id) => {
   games[id] = {
@@ -101,6 +102,7 @@ const gameLoop = async (
     updateQuestionRoundStatus(room, "started");
     // TODO: Socket Emit event to update game state, sending game status & question and options
     games[room].duration = roundDuration;
+    const momentRoundStarted = moment().format();
     updateGameStateEmitter(games[room], room);
 
     await new Promise((resolve) => setTimeout(resolve, roundDuration));
@@ -111,16 +113,23 @@ const gameLoop = async (
       const currentQuestionID = questions[currentQuestion - 1].id;
       const playerAnswer = player.answers[currentQuestionID];
       if (playerAnswer !== undefined) {
-        if (playerAnswer === questions[currentQuestion - 1].answerID) {
+        if (playerAnswer.answerID === questions[currentQuestion - 1].answerID) {
+          // Score Calculation
+          const maxPoints = 1000;
+          const responseTime = moment(playerAnswer.answeredAt).diff(
+            moment(momentRoundStarted),
+            "seconds"
+          );
+          const responseRatio = responseTime / (roundDuration / 1000);
+          const score = (1 - responseRatio / 2) * maxPoints;
           return {
             ...player,
-            score: player.score + 1,
+            score: player.score + Math.round(score),
           };
         }
       }
       return player;
     });
-    console.log(games[room].players);
     updateLeaderboardEmitter(games[room].players, room);
     // TODO: Socket Emit event to update game state, sending game status, correct answer & updated leaderboard
     games[room].duration = roundEndTransitionDuration;
@@ -181,13 +190,23 @@ const updatePlayerReadyStatus = ({ id, name, room }) => {
   return { error: "Game not found" };
 };
 
-const updatePlayerAnswer = ({ id, name, room, questionID, answerID }) => {
+const updatePlayerAnswer = ({
+  id,
+  name,
+  room,
+  questionID,
+  answerID,
+  momentAnswered,
+}) => {
   // TODO: Add validation for questionID to check if answer submitted is for current question
   if (games[room] !== undefined) {
     const newPlayersList = [...games[room].players];
     const existingUser = newPlayersList.findIndex((user) => user.id === id);
     if (existingUser !== -1) {
-      newPlayersList[existingUser].answers[questionID] = answerID;
+      newPlayersList[existingUser].answers[questionID] = {
+        answerID,
+        answeredAt: momentAnswered,
+      };
       games[room].players = newPlayersList;
       return { game: games[room] };
     }
