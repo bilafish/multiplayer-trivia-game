@@ -10,7 +10,7 @@ const Option = ({ index, content, isSelected, onClickHandler }) => {
   return (
     <Box
       p="1rem"
-      w="25%"
+      w="8rem"
       h="10rem"
       borderRadius="lg"
       borderWidth={isSelected ? "0.4rem" : "0px"}
