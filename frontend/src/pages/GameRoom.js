@@ -1,9 +1,17 @@
-import { Heading, Center, VStack, Button, Badge } from "@chakra-ui/react";
+import {
+  Heading,
+  Center,
+  VStack,
+  Button,
+  Badge,
+  Tooltip,
+} from "@chakra-ui/react";
 import { useParams, useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 import { useSelector } from "react-redux";
 import GameView from "../components/GameView/index";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const ENDPOINT = "http://localhost:5000";
 
@@ -19,6 +27,7 @@ const GameRoom = () => {
   const [gameState, setGameState] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     socket = io(ENDPOINT);
@@ -79,11 +88,30 @@ const GameRoom = () => {
       }
     );
   };
+
   return (
     <Center bg="#151515" minH="100vh">
       <VStack spacing="1rem" color="white">
         <Heading color="#5582ac">Game Room</Heading>
-        <p>Game ID: {id}</p>
+        <p>
+          Game ID:{" "}
+          <CopyToClipboard
+            text={id}
+            onCopy={() => {
+              setIsCopied(true);
+              setTimeout(() => {
+                setIsCopied(false);
+              }, 1000);
+            }}
+          >
+            <Button colorScheme="teal" variant="outline">
+              {id}
+            </Button>
+          </CopyToClipboard>
+          <Tooltip label="Copied!" placement="right-end" isOpen={isCopied}>
+            <span />
+          </Tooltip>
+        </p>
         <p>Users in room:</p>
         {users.length > 0 &&
           users.map((user) => (
