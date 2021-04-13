@@ -44,17 +44,14 @@ const GameRoom = () => {
 
   useEffect(() => {
     socket.on("roomData", ({ users }) => {
-      console.log({ users });
       setUsers(users);
     });
     socket.on("updateGameState", ({ gameState }) => {
-      console.log({ gameState });
       setGameState(gameState);
       setGameStatus(gameState.status);
       setSelectedAnswer(null);
     });
     socket.on("updateLeaderboard", ({ leaderboard }) => {
-      console.log({ leaderboard });
       setLeaderboard(leaderboard);
     });
   }, []);
