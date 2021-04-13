@@ -4,6 +4,15 @@ const socketio = require("socket.io");
 const cors = require("cors");
 
 const { addUser, removeUser, getUsersInRoom } = require("./users");
+const {
+  createGame,
+  addPlayer,
+  disconnectPlayer,
+  updatePlayerReadyStatus,
+  updatePlayerAnswer,
+  getGameByID,
+  gameLoop,
+} = require("./game");
 
 const router = require("./router");
 
@@ -17,6 +26,18 @@ const io = socketio(server, {
 // app.use(cors());
 app.use(router);
 
+// Socker Emitters
+const updateLeaderboard = (data, room) => {
+  io.to(room).emit("updateLeaderboard", {
+    leaderboard: data,
+  });
+};
+const updateGameState = (gameState, room) => {
+  io.to(room).emit("updateGameState", {
+    gameState,
+  });
+};
+
 io.on("connect", (socket) => {
   console.log(`${socket.id} connected!`);
 
@@ -27,22 +48,69 @@ io.on("connect", (socket) => {
     if (error) return callback(error);
 
     socket.join(user.room);
+    const { game, error: getGameError } = getGameByID(room);
+    if (getGameError) {
+      createGame(room);
+      addPlayer({ id: socket.id, name, room });
+    } else {
+      if (game.status !== "pending") {
+        return callback("Game already started");
+      }
+      addPlayer({ id: socket.id, name, room });
+    }
 
     io.to(user.room).emit("roomData", {
       room: user.room,
-      users: getUsersInRoom(user.room),
+      users: getGameByID(user.room).game.players,
     });
 
     callback();
   });
+
+  // Set player ready status handler
+  socket.on("player-ready", ({ name, room }, callback) => {
+    const { game, error } = updatePlayerReadyStatus({
+      id: socket.id,
+      name,
+      room,
+    });
+
+    io.to(room).emit("roomData", {
+      room,
+      users: getGameByID(room).game.players,
+    });
+
+    if (game.status === "started") {
+      gameLoop({ room }, updateLeaderboard, updateGameState);
+    }
+    callback({ game, error });
+  });
+
+  // Set player's answer
+  socket.on(
+    "player-answer",
+    ({ name, room, questionID, answerID }, callback) => {
+      const { game, error } = updatePlayerAnswer({
+        id: socket.id,
+        name,
+        room,
+        questionID,
+        answerID,
+      });
+      console.log(game.players[0]);
+      callback({ game, error });
+    }
+  );
+
   socket.on("disconnect", () => {
     console.log(`${socket.id} disconnected.`);
     const user = removeUser(socket.id);
 
     if (user) {
+      disconnectPlayer({ id: socket.id, room: user.room });
       io.to(user.room).emit("roomData", {
         room: user.room,
-        users: getUsersInRoom(user.room),
+        users: getGameByID(user.room).game.players,
       });
     }
   });
