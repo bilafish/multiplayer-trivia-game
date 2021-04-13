@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import GameView from "../components/GameView/index";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
-const ENDPOINT = "http://localhost:5000";
+const ENDPOINT = "https://multiplayer-trivia-game.herokuapp.com/";
 
 let socket;
 
