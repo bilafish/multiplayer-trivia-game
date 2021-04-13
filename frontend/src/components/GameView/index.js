@@ -2,6 +2,7 @@ import { Heading, HStack } from "@chakra-ui/react";
 import Option from "../Question/Option";
 import QuestionTransition from "../Question/QuestionTransition";
 import { parseEntities } from "../Question/Option";
+import Timer from "../Question/Timer";
 
 const GameView = ({ selectedAnswer, selectOption, gameState }) => {
   const questionRoundStatus = gameState.questionRoundStatus;
@@ -15,6 +16,7 @@ const GameView = ({ selectedAnswer, selectOption, gameState }) => {
       )}
       {questionRoundStatus === "started" && (
         <>
+          <Timer duration={gameState.duration} />
           <Heading>Qn {gameState.currentQuestionNo}</Heading>
           <Heading>
             {parseEntities(
