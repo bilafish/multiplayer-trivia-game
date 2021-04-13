@@ -5,11 +5,14 @@ const Timer = ({ duration }) => {
   const [timeLeft, setTimeLeft] = useState(duration / 1000);
 
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
       setTimeLeft((prev) => {
         return prev - 1;
       });
     }, 1000);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
