@@ -150,6 +150,8 @@ const gameLoop = async (
   updateGameStatus(room, "ended");
   // TODO: Socket Emit event to update game state
   updateGameStateEmitter(games[room], room);
+  // TODO: Remove game room since game has ended
+  delete games[room];
 };
 
 const updateGameStatus = (room, newStatus) => {
