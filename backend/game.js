@@ -1,4 +1,5 @@
 const games = {};
+const moment = require("moment");
 
 const createGame = (id) => {
   games[id] = {
@@ -11,6 +12,40 @@ const createGame = (id) => {
         id: "af9514e6-d9a4-4854-b287-11fdfcd83a72",
         payload: "Who directed the 2015 movie &quot;The Revenant&quot;?",
         answerID: 1,
+        options: [
+          {
+            id: 1,
+            payload: "Alejandro G. I&ntilde;&aacute;rritu",
+          },
+          {
+            id: 2,
+            payload: "Christopher Nolan",
+          },
+          {
+            id: 3,
+            payload: "David Fincher",
+          },
+          {
+            id: 4,
+            payload: "Wes Anderson",
+          },
+        ],
+      },
+      {
+        id: "d1cc29ef-0513-4a18-9292-4d7f352e82bd",
+        payload:
+          "In the TV series Red Dwarf, Kryten&#039;s full name is Kryten 2X4B-523P.",
+        answerID: 1,
+        options: [
+          {
+            id: 1,
+            payload: "True",
+          },
+          {
+            id: 2,
+            payload: "False",
+          },
+        ],
       },
     ],
   };
@@ -56,17 +91,18 @@ const gameLoop = async (
   let currentQuestion = games[room].currentQuestionNo;
   const questions = games[room].questions;
   updateGameStatus(room, "started");
-  updateQuestionRoundStatus(room, "pending");
-  games[room].duration = roundStartTransitionDuration;
-  updateGameStateEmitter(games[room], room);
 
   while (currentQuestion <= games[room].questions.length) {
+    updateQuestionRoundStatus(room, "pending");
+    games[room].duration = roundStartTransitionDuration;
+    updateGameStateEmitter(games[room], room);
     await new Promise((resolve) =>
       setTimeout(resolve, roundStartTransitionDuration)
     );
     updateQuestionRoundStatus(room, "started");
     // TODO: Socket Emit event to update game state, sending game status & question and options
     games[room].duration = roundDuration;
+    const momentRoundStarted = moment().format();
     updateGameStateEmitter(games[room], room);
 
     await new Promise((resolve) => setTimeout(resolve, roundDuration));
@@ -77,31 +113,40 @@ const gameLoop = async (
       const currentQuestionID = questions[currentQuestion - 1].id;
       const playerAnswer = player.answers[currentQuestionID];
       if (playerAnswer !== undefined) {
-        if (playerAnswer === questions[currentQuestion - 1].answerID) {
+        if (playerAnswer.answerID === questions[currentQuestion - 1].answerID) {
+          // Score Calculation
+          const maxPoints = 1000;
+          const responseTime = moment(playerAnswer.answeredAt).diff(
+            moment(momentRoundStarted),
+            "seconds"
+          );
+          const responseRatio = responseTime / (roundDuration / 1000);
+          const score = (1 - responseRatio / 2) * maxPoints;
           return {
             ...player,
-            score: player.score + 1,
+            score: player.score + Math.round(score),
           };
         }
       }
       return player;
     });
-    console.log(games[room].players);
     updateLeaderboardEmitter(games[room].players, room);
     // TODO: Socket Emit event to update game state, sending game status, correct answer & updated leaderboard
     games[room].duration = roundEndTransitionDuration;
     updateGameStateEmitter(games[room], room);
-
     await new Promise((resolve) =>
       setTimeout(resolve, roundEndTransitionDuration)
     );
-    if (currentQuestion < games[room].questions.length) {
-      updateQuestionRoundStatus(room, "pending");
-      // TODO: Socket Emit event to update game state
-      updateGameStateEmitter(games[room], room);
-    }
+
+    // if (currentQuestion < games[room].questions.length) {
+    //   updateQuestionRoundStatus(room, "pending");
+    //   // TODO: Socket Emit event to update game state
+    //   updateGameStateEmitter(games[room], room);
+    // }
     currentQuestion += 1;
+    games[room].currentQuestionNo = currentQuestion;
   }
+
   updateGameStatus(room, "ended");
   // TODO: Socket Emit event to update game state
   updateGameStateEmitter(games[room], room);
@@ -145,13 +190,23 @@ const updatePlayerReadyStatus = ({ id, name, room }) => {
   return { error: "Game not found" };
 };
 
-const updatePlayerAnswer = ({ id, name, room, questionID, answerID }) => {
+const updatePlayerAnswer = ({
+  id,
+  name,
+  room,
+  questionID,
+  answerID,
+  momentAnswered,
+}) => {
   // TODO: Add validation for questionID to check if answer submitted is for current question
   if (games[room] !== undefined) {
     const newPlayersList = [...games[room].players];
     const existingUser = newPlayersList.findIndex((user) => user.id === id);
     if (existingUser !== -1) {
-      newPlayersList[existingUser].answers[questionID] = answerID;
+      newPlayersList[existingUser].answers[questionID] = {
+        answerID,
+        answeredAt: momentAnswered,
+      };
       games[room].players = newPlayersList;
       return { game: games[room] };
     }

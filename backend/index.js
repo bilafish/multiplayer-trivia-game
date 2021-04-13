@@ -2,6 +2,7 @@ const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 const cors = require("cors");
+const moment = require("moment");
 
 const { addUser, removeUser, getUsersInRoom } = require("./users");
 const {
@@ -96,8 +97,8 @@ io.on("connect", (socket) => {
         room,
         questionID,
         answerID,
+        momentAnswered: moment().format(),
       });
-      console.log(game.players[0]);
       callback({ game, error });
     }
   );

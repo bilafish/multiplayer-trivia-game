@@ -1,9 +1,17 @@
-import { Heading, Center, VStack, Button, Badge } from "@chakra-ui/react";
+import {
+  Heading,
+  Center,
+  VStack,
+  Button,
+  Badge,
+  Tooltip,
+} from "@chakra-ui/react";
 import { useParams, useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 import { useSelector } from "react-redux";
 import GameView from "../components/GameView/index";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const ENDPOINT = "http://localhost:5000";
 
@@ -17,7 +25,9 @@ const GameRoom = () => {
   const [isReady, setIsReady] = useState(false);
   const [gameStatus, setGameStatus] = useState("pending");
   const [gameState, setGameState] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     socket = io(ENDPOINT);
@@ -45,6 +55,7 @@ const GameRoom = () => {
     });
     socket.on("updateLeaderboard", ({ leaderboard }) => {
       console.log({ leaderboard });
+      setLeaderboard(leaderboard);
     });
   }, []);
 
@@ -67,7 +78,7 @@ const GameRoom = () => {
       {
         name: name,
         room: id,
-        questionID: "af9514e6-d9a4-4854-b287-11fdfcd83a72",
+        questionID: gameState.questions[gameState.currentQuestionNo - 1].id,
         answerID,
       },
       ({ error }) => {
@@ -77,11 +88,30 @@ const GameRoom = () => {
       }
     );
   };
+
   return (
     <Center bg="#151515" minH="100vh">
       <VStack spacing="1rem" color="white">
         <Heading color="#5582ac">Game Room</Heading>
-        <p>Game ID: {id}</p>
+        <p>
+          Game ID:{" "}
+          <CopyToClipboard
+            text={id}
+            onCopy={() => {
+              setIsCopied(true);
+              setTimeout(() => {
+                setIsCopied(false);
+              }, 1000);
+            }}
+          >
+            <Button colorScheme="teal" variant="outline">
+              {id}
+            </Button>
+          </CopyToClipboard>
+          <Tooltip label="Copied!" placement="right-end" isOpen={isCopied}>
+            <span />
+          </Tooltip>
+        </p>
         <p>Users in room:</p>
         {users.length > 0 &&
           users.map((user) => (
@@ -107,6 +137,7 @@ const GameRoom = () => {
             selectedAnswer={selectedAnswer}
             selectOption={selectOption}
             gameState={gameState}
+            leaderboard={leaderboard}
           />
         )}
         {gameStatus === "ended" && (
