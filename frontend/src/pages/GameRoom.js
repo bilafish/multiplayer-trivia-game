@@ -1,11 +1,4 @@
-import {
-  Heading,
-  Center,
-  VStack,
-  HStack,
-  Button,
-  Badge,
-} from "@chakra-ui/react";
+import { Heading, Center, VStack, Button, Badge } from "@chakra-ui/react";
 import { useParams, useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
