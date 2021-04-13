@@ -67,7 +67,7 @@ const GameRoom = () => {
       {
         name: name,
         room: id,
-        questionID: "af9514e6-d9a4-4854-b287-11fdfcd83a72",
+        questionID: gameState.questions[gameState.currentQuestionNo - 1].id,
         answerID,
       },
       ({ error }) => {
