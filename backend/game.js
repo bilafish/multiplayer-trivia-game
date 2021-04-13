@@ -11,6 +11,24 @@ const createGame = (id) => {
         id: "af9514e6-d9a4-4854-b287-11fdfcd83a72",
         payload: "Who directed the 2015 movie &quot;The Revenant&quot;?",
         answerID: 1,
+        options: [
+          {
+            id: 1,
+            payload: "Alejandro G. I&ntilde;&aacute;rritu",
+          },
+          {
+            id: 2,
+            payload: "Christopher Nolan",
+          },
+          {
+            id: 3,
+            payload: "David Fincher",
+          },
+          {
+            id: 4,
+            payload: "Wes Anderson",
+          },
+        ],
       },
     ],
   };
