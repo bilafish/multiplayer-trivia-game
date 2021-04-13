@@ -26,7 +26,6 @@ const Home = () => {
     event.preventDefault();
     const name = event.target.name.value;
     dispatch(setName(name));
-    console.log(name);
     const randomRoomID = randomWords(3).join("-");
     history.push(`/room/${randomRoomID}`);
   };
