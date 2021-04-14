@@ -1,53 +1,43 @@
 const games = {};
 const moment = require("moment");
+const { v4: uuidv4 } = require("uuid");
+const { getTriviaQuestions } = require("./services");
+const { shuffle } = require("./helpers");
 
-const createGame = (id) => {
+const createGame = async (id) => {
+  let questions = [];
+  try {
+    const data = await getTriviaQuestions(5);
+    questions = await data.map((question) => {
+      const options = [...question.incorrect_answers, question.correct_answer];
+      shuffle(options);
+      const optionObjArray = options.map((opt, index) => {
+        return {
+          id: index + 1,
+          payload: opt,
+        };
+      });
+      return {
+        id: uuidv4(),
+        payload: question.question,
+        answerID: optionObjArray.find(
+          (opt) => opt.payload === question.correct_answer
+        ).id,
+        options: optionObjArray,
+      };
+    });
+    // Parse data
+  } catch (err) {
+    console.log(err);
+    throw new Error(err.message || "Get trivia questions failed");
+  }
+
   games[id] = {
     status: "pending",
     players: [],
     questionRoundStatus: "not-started",
     currentQuestionNo: 1,
-    questions: [
-      {
-        id: "af9514e6-d9a4-4854-b287-11fdfcd83a72",
-        payload: "Who directed the 2015 movie &quot;The Revenant&quot;?",
-        answerID: 1,
-        options: [
-          {
-            id: 1,
-            payload: "Alejandro G. I&ntilde;&aacute;rritu",
-          },
-          {
-            id: 2,
-            payload: "Christopher Nolan",
-          },
-          {
-            id: 3,
-            payload: "David Fincher",
-          },
-          {
-            id: 4,
-            payload: "Wes Anderson",
-          },
-        ],
-      },
-      {
-        id: "d1cc29ef-0513-4a18-9292-4d7f352e82bd",
-        payload:
-          "In the TV series Red Dwarf, Kryten&#039;s full name is Kryten 2X4B-523P.",
-        answerID: 1,
-        options: [
-          {
-            id: 1,
-            payload: "True",
-          },
-          {
-            id: 2,
-            payload: "False",
-          },
-        ],
-      },
-    ],
+    questions: questions,
   };
 };
 
