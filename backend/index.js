@@ -43,7 +43,7 @@ io.on("connect", (socket) => {
   console.log(`${socket.id} connected!`);
 
   // Join room handler
-  socket.on("join", ({ name, room }, callback) => {
+  socket.on("join", async ({ name, room }, callback) => {
     const { error, user } = addUser({ id: socket.id, name, room });
 
     if (error) return callback(error);
@@ -51,7 +51,7 @@ io.on("connect", (socket) => {
     socket.join(user.room);
     const { game, error: getGameError } = getGameByID(room);
     if (getGameError) {
-      createGame(room);
+      await createGame(room);
       addPlayer({ id: socket.id, name, room });
     } else {
       if (game.status !== "pending") {
@@ -108,11 +108,13 @@ io.on("connect", (socket) => {
     const user = removeUser(socket.id);
 
     if (user) {
-      disconnectPlayer({ id: socket.id, room: user.room });
-      io.to(user.room).emit("roomData", {
-        room: user.room,
-        users: getGameByID(user.room).game.players,
-      });
+      const { error } = disconnectPlayer({ id: socket.id, room: user.room });
+      if (error !== "Game not found") {
+        io.to(user.room).emit("roomData", {
+          room: user.room,
+          users: getGameByID(user.room).game.players,
+        });
+      }
     }
   });
 });
