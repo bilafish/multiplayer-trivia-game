@@ -46,7 +46,7 @@ io.on("connect", (socket) => {
   socket.on("join", async ({ name, room }, callback) => {
     const { error, user } = addUser({ id: socket.id, name, room });
 
-    if (error) return callback(error);
+    if (error) return callback({ error: error });
 
     socket.join(user.room);
     const { game, error: getGameError } = getGameByID(room);
@@ -55,7 +55,7 @@ io.on("connect", (socket) => {
       addPlayer({ id: socket.id, name, room });
     } else {
       if (game.status !== "pending") {
-        return callback("Game already started");
+        return callback({ error: "Game already started" });
       }
       addPlayer({ id: socket.id, name, room });
     }
@@ -65,7 +65,9 @@ io.on("connect", (socket) => {
       users: getGameByID(user.room).game.players,
     });
 
-    callback();
+    callback({
+      user: user,
+    });
   });
 
   // Set player ready status handler
