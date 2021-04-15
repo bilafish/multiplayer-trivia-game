@@ -9,9 +9,10 @@ import {
 import { useParams, useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import GameView from "../components/GameView/index";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { setSocketID } from "../store/user";
 
 const ENDPOINT = "http://localhost:5000";
 
@@ -20,6 +21,7 @@ let socket;
 const GameRoom = () => {
   const { id } = useParams();
   const history = useHistory();
+  const dispatch = useDispatch();
   const { name } = useSelector((state) => state.user);
   const [users, setUsers] = useState([]);
   const [isReady, setIsReady] = useState(false);
@@ -32,15 +34,17 @@ const GameRoom = () => {
   useEffect(() => {
     socket = io(ENDPOINT);
 
-    socket.emit("join", { name: name, room: id }, (error) => {
+    socket.emit("join", { name: name, room: id }, ({ error, user }) => {
       if (error) {
         alert(error);
+      } else {
+        dispatch(setSocketID(user.id));
       }
     });
     return () => {
       socket.disconnect();
     };
-  }, [id, name]);
+  }, [dispatch, id, name]);
 
   useEffect(() => {
     socket.on("roomData", ({ users }) => {
