@@ -5,6 +5,7 @@ import {
   Button,
   Badge,
   Tooltip,
+  Spinner,
 } from "@chakra-ui/react";
 import { useParams, useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -24,6 +25,7 @@ const GameRoom = () => {
   const dispatch = useDispatch();
   const { name } = useSelector((state) => state.user);
   const [users, setUsers] = useState([]);
+  const [isSocketJoined, setIsSocketJoined] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [gameStatus, setGameStatus] = useState("pending");
   const [gameState, setGameState] = useState(null);
@@ -39,6 +41,7 @@ const GameRoom = () => {
         alert(error);
       } else {
         dispatch(setSocketID(user.id));
+        setIsSocketJoined(true);
       }
     });
     return () => {
@@ -116,46 +119,59 @@ const GameRoom = () => {
             <span />
           </Tooltip>
         </p>
-        <p>Users in room:</p>
-        {users.length > 0 &&
-          users.map((user) => (
-            <p key={user.id}>
-              {user.name}{" "}
-              <Badge ml="1" colorScheme={user.isReady ? "green" : "orange"}>
-                {user.isReady ? "Ready" : "Pending"}
-              </Badge>
-            </p>
-          ))}
-        {gameStatus === "pending" && (
-          <Button
-            colorScheme="yellow"
-            variant="solid"
-            disabled={isReady}
-            onClick={sendReadyStatus}
-          >
-            {isReady ? "Waiting for players" : "Ready"}
-          </Button>
-        )}
-        {gameStatus === "started" && (
-          <GameView
-            selectedAnswer={selectedAnswer}
-            selectOption={selectOption}
-            gameState={gameState}
-            leaderboard={leaderboard}
+        {!isSocketJoined && (
+          <Spinner
+            thickness="4px"
+            speed="0.65s"
+            emptyColor="gray.200"
+            color="blue.500"
+            size="xl"
           />
         )}
-        {gameStatus === "ended" && (
+        {isSocketJoined && (
           <>
-            <Heading size="md">Game Ended</Heading>
-            <Button
-              colorScheme="yellow"
-              variant="solid"
-              onClick={() => {
-                history.replace("/");
-              }}
-            >
-              Play Again
-            </Button>
+            <p>Users in room:</p>
+            {users.length > 0 &&
+              users.map((user) => (
+                <p key={user.id}>
+                  {user.name}{" "}
+                  <Badge ml="1" colorScheme={user.isReady ? "green" : "orange"}>
+                    {user.isReady ? "Ready" : "Pending"}
+                  </Badge>
+                </p>
+              ))}
+            {gameStatus === "pending" && (
+              <Button
+                colorScheme="yellow"
+                variant="solid"
+                disabled={isReady}
+                onClick={sendReadyStatus}
+              >
+                {isReady ? "Waiting for players" : "Ready"}
+              </Button>
+            )}
+            {gameStatus === "started" && (
+              <GameView
+                selectedAnswer={selectedAnswer}
+                selectOption={selectOption}
+                gameState={gameState}
+                leaderboard={leaderboard}
+              />
+            )}
+            {gameStatus === "ended" && (
+              <>
+                <Heading size="md">Game Ended</Heading>
+                <Button
+                  colorScheme="yellow"
+                  variant="solid"
+                  onClick={() => {
+                    history.replace("/");
+                  }}
+                >
+                  Play Again
+                </Button>
+              </>
+            )}
           </>
         )}
       </VStack>
