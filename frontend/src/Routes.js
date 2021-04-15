@@ -1,16 +1,21 @@
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import GameRoom from "./pages/GameRoom";
+import { Suspense, lazy } from "react";
+
+const GameRoom = lazy(() => import("./pages/GameRoom"));
+const Home = lazy(() => import("./pages/Home"));
+
 const Routes = () => {
   return (
     <Router>
       <Switch>
-        <Route exact path="/room/:id">
-          <GameRoom />
-        </Route>
-        <Route path="/">
-          <Home />
-        </Route>
+        <Suspense fallback={<div />}>
+          <Route exact path="/room/:id">
+            <GameRoom />
+          </Route>
+          <Route path="/">
+            <Home />
+          </Route>
+        </Suspense>
       </Switch>
     </Router>
   );
