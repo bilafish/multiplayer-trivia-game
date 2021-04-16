@@ -12,7 +12,7 @@ const Routes = () => {
           <Route exact path="/room/:id">
             <GameRoom />
           </Route>
-          <Route path="/">
+          <Route exact path="/">
             <Home />
           </Route>
         </Suspense>
