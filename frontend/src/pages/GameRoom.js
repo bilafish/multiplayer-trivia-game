@@ -97,7 +97,7 @@ const GameRoom = () => {
   };
 
   return (
-    <Center bg="#151515" minH="100vh">
+    <Center bg="#151515" minH="100vh" padding="1rem">
       <VStack spacing="1rem" color="white">
         <Heading color="#5582ac">Game Room</Heading>
         <p>
